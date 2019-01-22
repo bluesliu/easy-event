@@ -29,12 +29,13 @@ class Main {
     }
 
     onComplete(event){
+        console.log("event.target："+ event.target.toString());
         console.log("event.type："+ event.type.toString());
         console.log("event.data："+ JSON.stringify(event.data));
 
         //移除监听器
         this.loader.removeEventListener(Event.COMPLETE, this.onComplete);
-        
+
         console.log("loader hasEventListener："+this.loader.hasEventListener(Event.COMPLETE));
     }
 }
@@ -56,6 +57,10 @@ class Loader extends EventDispatcher {
             self.dispatchEvent(evt);
 
         }, 2000);
+    }
+
+    toString() {
+        return "My name is Loader ~~";
     }
 }
 

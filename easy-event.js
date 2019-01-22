@@ -18,6 +18,17 @@ class EventDispatcher {
         if(!this.hasEventListener(event.type)){
             return;
         }
+
+        //设置target
+        const eventSymbols = Object.getOwnPropertySymbols(event);
+        for (let i = 0; i < eventSymbols.length; i++) {
+            const symbol = eventSymbols[i];
+            if(symbol === $target){
+                event[symbol] = this;
+                break;
+            }
+        }
+
         const listeners = this[$listenerMap].get(event.type);
         listeners.forEach((listener)=>{
             const {fn, thisObj} = listener;
@@ -114,6 +125,7 @@ class Listener {
 
 
 const $type = Symbol('type');
+const $target = Symbol('target');
 
 class Event {
     /**
@@ -124,18 +136,39 @@ class Event {
     constructor(type, data=null){
         this[$type] = type;
         this.data = data;
+        this[$target] = null;
     }
 
+    /**
+     *
+     * @returns {string|Symbol}
+     */
     get type() {
         return this[$type];
     }
 
+    /**
+     *
+     * @returns {Event}
+     */
     clone() {
         return new Event(this.type, this.data);
     }
 
+    /**
+     *
+     * @returns {string}
+     */
     toString() {
         return `${this.constructor.name}(type=${this.type.toString()}, data=${this.data})`;
+    }
+
+    /**
+     *
+     * @returns {*}
+     */
+    get target() {
+        return this[$target];
     }
 }
 

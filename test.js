@@ -15,6 +15,7 @@ class Main {
     }
 
     onComplete(event){
+        console.log("event.target："+ event.target.toString());
         console.log("event.type："+ event.type.toString());
         console.log("event.data："+ JSON.stringify(event.data));
 
@@ -42,6 +43,10 @@ class Loader extends EventDispatcher {
             self.dispatchEvent(evt);
 
         }, 2000);
+    }
+
+    toString() {
+        return "My name is Loader ~~";
     }
 }
 
