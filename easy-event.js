@@ -1,6 +1,6 @@
 let $listenerMap = Symbol('listenerMap');
 
-class EasyEvent {
+class EventDispatcher {
 
     constructor() {
         /**
@@ -152,4 +152,4 @@ Event.SELECT = Symbol('SELECT');
 Event.SELECT_ALL = Symbol('SELECT_ALL');
 
 
-module.exports = {Event, EventDispatcher: EasyEvent};
+module.exports = {Event, EventDispatcher};
