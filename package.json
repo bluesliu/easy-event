@@ -1,0 +1,13 @@
+{
+  "name": "easy-event",
+  "version": "0.0.1",
+  "description": "模仿 ActionScript3 Event、EventDispatcher。Event 类作为创建 Event 对象的基类，当发生事件时，Event 对象将作为参数传递给事件侦听器。EventDispatcher 类是可调度事件的所有类的基类，通常，使用户定义的类能够调度事件的最简单方法是扩展 EventDispatcher。创建 EventDispatcher 成员，并编写一些简单的挂钩，将调用连接到聚合的 EventDispatcher 中。",
+  "main": "easy-event.js",
+  "keywords": ["event","dispatcher","js"],
+  "author": "blues",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bluesliu/easy-event.git"
+  }
+}
