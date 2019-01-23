@@ -1,18 +1,33 @@
 let $listenerMap = Symbol('listenerMap');
+let $addEventListener = Symbol('addEventListener')
 
+/**
+ * EventDispatcher 是事件派发器类，负责进行事件的发送和侦听。
+ * 通常，用户定义的类能够调度事件的最简单方法是扩展 EventDispatcher。
+ * 如果无法扩展（即，如果该类已经扩展了另一个类），则可以实现 EventDispatcher 接口，
+ * 创建 EventDispatcher 成员，并编写一些简单的映射，将调用连接到聚合的 EventDispatcher 中。
+ */
 class EventDispatcher {
 
-    constructor() {
+    /**
+     * 创建一个 EventDispatcher 类的实例。
+     *
+     * @param target 此 EventDispatcher 所抛出事件对象的 target 指向。
+     * 此参数主要用于一个实现了 IEventDispatcher 接口的自定义类，
+     * 以便抛出的事件对象的 target 属性可以指向自定义类自身。
+     * 请勿在直接继承 EventDispatcher 的情况下使用此参数。
+     */
+    constructor(target=null) {
         /**
-         *
          * @type {Map<string|Symbol, Array.<Listener>>}
          */
         this[$listenerMap] = new Map();
+        this[$target] = target;
     }
 
     /**
-     *
-     * @param {Event} event
+     * 派发事件
+     * @param {Event} event 调度到事件流中的 Event 对象。
      */
     dispatchEvent(event) {
         if(!this.hasEventListener(event.type)){
@@ -21,12 +36,22 @@ class EventDispatcher {
 
         //设置target
         if(event[$target] === null){
-            event[$target] = this;
+            if(this[$target] !== null) {
+                event[$target] = this[$target];
+            }
+            else{
+                event[$target] = this;
+            }
         }
 
-        const listeners = this[$listenerMap].get(event.type);
-        listeners.forEach((listener)=>{
+        const listenerList = this[$listenerMap].get(event.type).concat();
+        listenerList.forEach((listener)=>{
             const {fn, thisObj} = listener;
+
+            if(listener.once){
+                this.removeEventListener(event.type, fn);
+            }
+
             if(thisObj){
                 fn.call(thisObj, event);
             }
@@ -37,13 +62,28 @@ class EventDispatcher {
     }
 
     /**
-     *
-     * @param {string|Symbol} type
-     * @param {function} listener
-     * @param {{}} thisObj
-     * @param {number} priority
+     * 使用 EventDispatcher 对象注册事件侦听器对象，以使侦听器能够接收事件通知。
+     * @param {string|Symbol} type 事件的类型。
+     * @param {function} listener 处理事件的侦听器函数。此函数必须接受 Event 对象作为其唯一的参数，并且不能返回任何结果，如下面的示例所示： function(evt:Event):void 函数可以有任何名称。
+     * @param {{}} thisObj 侦听函数绑定的this对象
+     * @param {number} priority 事件侦听器的优先级。优先级由一个带符号整数指定。数字越大，优先级越高。优先级为 n 的所有侦听器会在优先级为 n -1 的侦听器之前得到处理。如果两个或更多个侦听器共享相同的优先级，则按照它们的添加顺序进行处理。默认优先级为 0。
      */
     addEventListener(type, listener, thisObj=null, priority=0) {
+        this[$addEventListener](type, listener, thisObj, priority);
+    }
+
+    /**
+     * 添加仅回调一次的事件侦听器，此方法与addEventListener()方法不同，addEventListener()方法会持续产生回调，而此方法在第一次回调时就会自动移除监听。
+     * @param {string|Symbol} type 事件的类型。
+     * @param {function} listener 处理事件的侦听器函数。此函数必须接受 Event 对象作为其唯一的参数，并且不能返回任何结果，如下面的示例所示： function(evt:Event):void 函数可以有任何名称。
+     * @param {{}} thisObj 侦听函数绑定的this对象
+     * @param {number} priority 事件侦听器的优先级。优先级由一个带符号整数指定。数字越大，优先级越高。优先级为 n 的所有侦听器会在优先级为 n -1 的侦听器之前得到处理。如果两个或更多个侦听器共享相同的优先级，则按照它们的添加顺序进行处理。默认优先级为 0。
+     */
+    once(type, listener, thisObj=null, priority=0){
+        this[$addEventListener](type, listener, thisObj, priority, true);
+    }
+
+    [$addEventListener](type, listener, thisObj=null, priority=0, once=false) {
         if (!this.hasEventListener(type)) {
             this[$listenerMap].set(type, []);
         }
@@ -64,16 +104,16 @@ class EventDispatcher {
             }
         }
 
-        listeners.push(new Listener(listener, thisObj, priority));
+        listeners.push(new Listener(listener, thisObj, priority, once));
         listeners.sort((a,b)=>{
             return b.priority - a.priority;
         });
     }
 
     /**
-     *
-     * @param {string|Symbol} type
-     * @param {function} listener
+     * 从 EventDispatcher 对象中删除侦听器。
+     * @param {string|Symbol} type 事件的类型。
+     * @param {function} listener 要删除的侦听器对象。
      */
     removeEventListener(type, listener) {
         if(!this.hasEventListener(type)){
@@ -94,14 +134,14 @@ class EventDispatcher {
     }
 
     /**
-     *
+     * 从 EventDispatcher 对象中删除全部侦听器。
      */
     removeAll() {
         this[$listenerMap].clear();
     }
 
     /**
-     *
+     * 检查 EventDispatcher 对象是否为特定事件类型注册了任何侦听器。
      * @param {string|Symbol} type
      * @returns {Promise<boolean> | boolean}
      */
@@ -111,10 +151,11 @@ class EventDispatcher {
 }
 
 class Listener {
-    constructor(fn, thisObj, priority=0){
+    constructor(fn, thisObj, priority=0, once=false){
         this.fn = fn;
         this.thisObj = thisObj;
         this.priority = priority;
+        this.once = once;
     }
 }
 
@@ -124,9 +165,9 @@ const $target = Symbol('target');
 
 class Event {
     /**
-     *
-     * @param {string|Symbol} type
-     * @param {{}} data
+     * 创建一个作为参数传递给事件侦听器的 Event 对象。
+     * @param {string|Symbol} type 事件的类型。
+     * @param {{}} data 与此事件对象关联的可选数据。
      */
     constructor(type, data=null){
         this[$type] = type;
@@ -135,7 +176,7 @@ class Event {
     }
 
     /**
-     *
+     * 事件的类型
      * @returns {string|Symbol}
      */
     get type() {
@@ -143,7 +184,7 @@ class Event {
     }
 
     /**
-     *
+     * 克隆
      * @returns {Event}
      */
     clone() {
@@ -159,7 +200,7 @@ class Event {
     }
 
     /**
-     *
+     * 事件目标
      * @returns {*}
      */
     get target() {
@@ -211,7 +252,7 @@ class EventCenter extends EventDispatcher{
         return EventCenter[$instance];
     }
 
-    /**\
+    /**
      *
      * @param {string|Symbol} type
      * @param {function} listener
