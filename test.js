@@ -1,4 +1,4 @@
-const {Event, EventDispatcher} = require('./easy-event');
+const {Event, EventDispatcher, EventCenter} = require('./easy-event');
 
 
 class Main {
@@ -12,9 +12,17 @@ class Main {
         this.loader.addEventListener(Event.COMPLETE, this.onComplete, this);
 
         console.log("loader hasEventListener："+this.loader.hasEventListener(Event.COMPLETE));
+
+        //事件中心
+        EventCenter.register(Event.OPEN, (event)=>{
+            console.log("事件中心 OPEN");
+        }, this);
+
+        this.loader.open();
     }
 
     onComplete(event){
+        console.log("------- onComplete --------");
         console.log("event.target："+ event.target.toString());
         console.log("event.type："+ event.type.toString());
         console.log("event.data："+ JSON.stringify(event.data));
@@ -32,12 +40,16 @@ class Main {
  */
 class Loader extends EventDispatcher {
 
+    open() {
+        EventCenter.send(new Event(Event.OPEN), this);
+    }
+
     // 模拟异步加载
     load(path){
+
         let self = this;
 
         setTimeout(()=>{
-
             //加载完成，将加载数据封装为Event对象，派发出去。
             let evt = new Event(Event.COMPLETE, {path:path, size:'10KB', data:'data...'});
             self.dispatchEvent(evt);

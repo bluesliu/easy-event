@@ -20,13 +20,8 @@ class EventDispatcher {
         }
 
         //设置target
-        const eventSymbols = Object.getOwnPropertySymbols(event);
-        for (let i = 0; i < eventSymbols.length; i++) {
-            const symbol = eventSymbols[i];
-            if(symbol === $target){
-                event[symbol] = this;
-                break;
-            }
+        if(event[$target] === null){
+            event[$target] = this;
         }
 
         const listeners = this[$listenerMap].get(event.type);
@@ -185,4 +180,73 @@ Event.SELECT = Symbol('SELECT');
 Event.SELECT_ALL = Symbol('SELECT_ALL');
 
 
-module.exports = {Event, EventDispatcher};
+const $getInstance = Symbol('getInstance');
+const $instance = Symbol('instance');
+const $singleton = Symbol('singleton');
+
+/**
+ * 事件中心
+ */
+class EventCenter extends EventDispatcher{
+
+    /**
+     * EventCenter 是单例模式，不要试图实例化。
+     * @param {Symbol} symbol
+     */
+    constructor(symbol){
+        if(symbol !== $singleton){
+            throw(new Error("不能实例化 EventCenter 类，因为 EventCenter 是单例模式，请使它的静态方法。"));
+        }
+        super();
+    }
+
+    /**
+     * 获得 EventCenter 的单例
+     * @returns {EventCenter}
+     */
+    static get [$getInstance]() {
+        if(EventCenter[$instance] === undefined){
+            EventCenter[$instance] = new EventCenter($singleton);
+        }
+        return EventCenter[$instance];
+    }
+
+    /**\
+     *
+     * @param {string|Symbol} type
+     * @param {function} listener
+     * @param {{}} thisObj
+     * @param {number} priority
+     */
+    static register(type, listener, thisObj = null, priority = 0) {
+        EventCenter[$getInstance].addEventListener(type, listener, thisObj, priority);
+    };
+
+    /**
+     *
+     * @param {string|Symbol} type
+     * @param {function} listener
+     */
+    static unregister(type, listener) {
+        EventCenter[$getInstance].removeEventListener(type, listener);
+    }
+
+    /**
+     *
+     * @param {Event} event
+     * @param {{}} target
+     */
+    static send(event, target=null) {
+
+        //设置target
+        if(target!==null && target!==undefined){
+            event[$target] = target;
+        }
+
+        EventCenter[$getInstance].dispatchEvent(event);
+    }
+}
+
+
+
+module.exports = {Event, EventDispatcher, EventCenter};
