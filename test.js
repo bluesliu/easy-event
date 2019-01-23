@@ -2,35 +2,51 @@ const {Event, EventDispatcher, EventCenter} = require('./easy-event');
 
 
 class Main {
-    constructor(){
-        this.loader = new Loader();
+    constructor() {
 
-        //调用加载方法
-        this.loader.load('a.jpg');
+        let loader = new Loader();
 
-        //注册监听器
-        this.loader.addEventListener(Event.COMPLETE, this.onComplete, this);
-
-        console.log("loader hasEventListener："+this.loader.hasEventListener(Event.COMPLETE));
-
-        //事件中心
-        EventCenter.register(Event.OPEN, (event)=>{
-            console.log("事件中心 OPEN");
+        loader.once(Event.OPEN, (event) => {
+            console.log("------- open -------");
+            console.log("loader has Event.OPEN：" + loader.hasEventListener(Event.OPEN));
         }, this);
 
-        this.loader.open();
+        loader.addEventListener(Event.COMPLETE, this.onComplete1, this);
+        loader.addEventListener(Event.COMPLETE, this.onComplete2, this, 100);
+
+        // 用 EventCenter 可以全局监听
+        EventCenter.register(Event.CHANGE, this.onChange, this);
+
+        loader.open();
+        loader.load("a.jpg");
+        loader.change();
     }
 
-    onComplete(event){
-        console.log("------- onComplete --------");
-        console.log("event.target："+ event.target.toString());
-        console.log("event.type："+ event.type.toString());
-        console.log("event.data："+ JSON.stringify(event.data));
+    onComplete1(event) {
+        console.log("------- onComplete1 -------");
 
+        let loader = event.target;
+
+        console.log("event.target：" + loader.toString());
+        console.log("event.type：" + event.type.toString());
+        console.log("event.data：" + `size:${event.data.size} path:${event.data.path}`);
+
+        console.log("loader has Event.COMPLETE：" + loader.hasEventListener(Event.COMPLETE));
         //移除监听器
-        this.loader.removeEventListener(Event.COMPLETE, this.onComplete);
+        loader.removeEventListener(Event.COMPLETE, this.onComplete1);
+        console.log("loader has Event.COMPLETE：" + loader.hasEventListener(Event.COMPLETE));
+    }
 
-        console.log("loader hasEventListener："+this.loader.hasEventListener(Event.COMPLETE));
+    onComplete2(event) {
+        console.log("------- onComplete2 --------");
+        console.log("优先级被提高");
+        //移除监听器
+        event.target.removeEventListener(Event.COMPLETE, this.onComplete2);
+    }
+
+    onChange(event) {
+        console.log("------- onChange -------");
+        console.log("这是来自 EventCenter 派发的事件")
     }
 }
 
@@ -41,20 +57,24 @@ class Main {
 class Loader extends EventDispatcher {
 
     open() {
-        EventCenter.send(new Event(Event.OPEN), this);
+        this.dispatchEvent(new Event(Event.OPEN));
     }
 
     // 模拟异步加载
-    load(path){
+    load(path) {
 
         let self = this;
 
-        setTimeout(()=>{
+        setTimeout(() => {
             //加载完成，将加载数据封装为Event对象，派发出去。
-            let evt = new Event(Event.COMPLETE, {path:path, size:'10KB', data:'data...'});
+            let evt = new Event(Event.COMPLETE, {path: path, size: '10KB'});
             self.dispatchEvent(evt);
 
         }, 2000);
+    }
+
+    change() {
+        EventCenter.send(new Event(Event.CHANGE), this);
     }
 
     toString() {
