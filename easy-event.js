@@ -84,6 +84,10 @@ class EventDispatcher {
     }
 
     [$addEventListener](type, listener, thisObj=null, priority=0, once=false) {
+        if(typeof listener !== 'function'){
+            throw(new Error("指定的 listener 不是一个函数。"));
+        }
+
         if (!this.hasEventListener(type)) {
             this[$listenerMap].set(type, []);
         }
