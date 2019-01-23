@@ -1,5 +1,5 @@
 let $listenerMap = Symbol('listenerMap');
-let $addEventListener = Symbol('addEventListener')
+let $addEventListener = Symbol('addEventListener');
 
 /**
  * EventDispatcher 是事件派发器类，负责进行事件的发送和侦听。
@@ -17,7 +17,7 @@ class EventDispatcher {
      * 以便抛出的事件对象的 target 属性可以指向自定义类自身。
      * 请勿在直接继承 EventDispatcher 的情况下使用此参数。
      */
-    constructor(target=null) {
+    constructor(target = null) {
         /**
          * @type {Map<string|Symbol, Array.<Listener>>}
          */
@@ -30,32 +30,30 @@ class EventDispatcher {
      * @param {Event} event 调度到事件流中的 Event 对象。
      */
     dispatchEvent(event) {
-        if(!this.hasEventListener(event.type)){
+        if (!this.hasEventListener(event.type)) {
             return;
         }
 
         //设置target
-        if(event[$target] === null){
-            if(this[$target] !== null) {
+        if (event[$target] === null) {
+            if (this[$target] !== null) {
                 event[$target] = this[$target];
-            }
-            else{
+            } else {
                 event[$target] = this;
             }
         }
 
         const listenerList = this[$listenerMap].get(event.type).concat();
-        listenerList.forEach((listener)=>{
+        listenerList.forEach((listener) => {
             const {fn, thisObj} = listener;
 
-            if(listener.once){
+            if (listener.once) {
                 this.removeEventListener(event.type, fn);
             }
 
-            if(thisObj){
+            if (thisObj) {
                 fn.call(thisObj, event);
-            }
-            else{
+            } else {
                 fn.call(this, event);
             }
         });
@@ -68,7 +66,7 @@ class EventDispatcher {
      * @param {{}} thisObj 侦听函数绑定的this对象
      * @param {number} priority 事件侦听器的优先级。优先级由一个带符号整数指定。数字越大，优先级越高。优先级为 n 的所有侦听器会在优先级为 n -1 的侦听器之前得到处理。如果两个或更多个侦听器共享相同的优先级，则按照它们的添加顺序进行处理。默认优先级为 0。
      */
-    addEventListener(type, listener, thisObj=null, priority=0) {
+    addEventListener(type, listener, thisObj = null, priority = 0) {
         this[$addEventListener](type, listener, thisObj, priority);
     }
 
@@ -79,12 +77,12 @@ class EventDispatcher {
      * @param {{}} thisObj 侦听函数绑定的this对象
      * @param {number} priority 事件侦听器的优先级。优先级由一个带符号整数指定。数字越大，优先级越高。优先级为 n 的所有侦听器会在优先级为 n -1 的侦听器之前得到处理。如果两个或更多个侦听器共享相同的优先级，则按照它们的添加顺序进行处理。默认优先级为 0。
      */
-    once(type, listener, thisObj=null, priority=0){
+    once(type, listener, thisObj = null, priority = 0) {
         this[$addEventListener](type, listener, thisObj, priority, true);
     }
 
-    [$addEventListener](type, listener, thisObj=null, priority=0, once=false) {
-        if(typeof listener !== 'function'){
+    [$addEventListener](type, listener, thisObj = null, priority = 0, once = false) {
+        if (typeof listener !== 'function') {
             throw(new Error("指定的 listener 不是一个函数。"));
         }
 
@@ -95,12 +93,12 @@ class EventDispatcher {
         const listeners = this[$listenerMap].get(type);
 
         for (let i = 0; i < listeners.length; i++) {
-            if(listeners[i].fn === listener){
+            if (listeners[i].fn === listener) {
                 //已经注册过了
                 //判断是否修改了优先级
-                if(listeners[i].priority !== priority){
+                if (listeners[i].priority !== priority) {
                     listeners[i].priority = priority;
-                    listeners.sort((a,b)=>{
+                    listeners.sort((a, b) => {
                         return b.priority - a.priority;
                     });
                 }
@@ -109,7 +107,7 @@ class EventDispatcher {
         }
 
         listeners.push(new Listener(listener, thisObj, priority, once));
-        listeners.sort((a,b)=>{
+        listeners.sort((a, b) => {
             return b.priority - a.priority;
         });
     }
@@ -120,19 +118,19 @@ class EventDispatcher {
      * @param {function} listener 要删除的侦听器对象。
      */
     removeEventListener(type, listener) {
-        if(!this.hasEventListener(type)){
+        if (!this.hasEventListener(type)) {
             return;
         }
 
         const listeners = this[$listenerMap].get(type);
-        for (let i = listeners.length-1; i >= 0 ; i--) {
-            if(listeners[i].fn === listener){
-                listeners.splice(i,1);
+        for (let i = listeners.length - 1; i >= 0; i--) {
+            if (listeners[i].fn === listener) {
+                listeners.splice(i, 1);
                 break;
             }
         }
 
-        if(listeners.length === 0){
+        if (listeners.length === 0) {
             this[$listenerMap].delete(type);
         }
     }
@@ -173,7 +171,7 @@ class Event {
      * @param {string|Symbol} type 事件的类型。
      * @param {{}} data 与此事件对象关联的可选数据。
      */
-    constructor(type, data=null){
+    constructor(type, data = null) {
         this[$type] = type;
         this.data = data;
         this[$target] = null;
@@ -232,14 +230,14 @@ const $singleton = Symbol('singleton');
 /**
  * 事件中心
  */
-class EventCenter extends EventDispatcher{
+class EventCenter extends EventDispatcher {
 
     /**
      * EventCenter 是单例模式，不要试图实例化。
      * @param {Symbol} symbol
      */
-    constructor(symbol){
-        if(symbol !== $singleton){
+    constructor(symbol) {
+        if (symbol !== $singleton) {
             throw(new Error("不能实例化 EventCenter 类，因为 EventCenter 是单例模式，请使它的静态方法。"));
         }
         super();
@@ -250,7 +248,7 @@ class EventCenter extends EventDispatcher{
      * @returns {EventCenter}
      */
     static get [$getInstance]() {
-        if(EventCenter[$instance] === undefined){
+        if (EventCenter[$instance] === undefined) {
             EventCenter[$instance] = new EventCenter($singleton);
         }
         return EventCenter[$instance];
@@ -281,10 +279,10 @@ class EventCenter extends EventDispatcher{
      * @param {Event} event
      * @param {{}} target
      */
-    static send(event, target=null) {
+    static send(event, target = null) {
 
         //设置target
-        if(target!==null && target!==undefined){
+        if (target !== null && target !== undefined) {
             event[$target] = target;
         }
 
