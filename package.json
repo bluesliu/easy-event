@@ -1,6 +1,6 @@
 {
   "name": "easy-event",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "easy-event 是一个简单易用的事件模块。提供了3个类：Event、EventDispatcher 和 EventCenter。",
   "main": "easy-event.js",
   "keywords": ["event","dispatcher","js","center"],

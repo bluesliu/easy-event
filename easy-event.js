@@ -57,6 +57,18 @@ class EventDispatcher {
                 fn.call(this, event);
             }
         });
+
+        // 回收Event
+        Event.release(event);
+    }
+
+    /**
+     * 派发一个指定参数的事件
+     * @param {Symbol|string} type
+     * @param {{}} data
+     */
+    dispatchEventWith(type, data=null){
+        this.dispatchEvent(Event.create(Event, type, data));
     }
 
     /**
@@ -164,6 +176,7 @@ class Listener {
 
 const $type = Symbol('type');
 const $target = Symbol('target');
+const eventPool = [];
 
 class Event {
     /**
@@ -190,7 +203,7 @@ class Event {
      * @returns {Event}
      */
     clone() {
-        return new Event(this.type, this.data);
+        return Event.create(this.constructor, this.type, this.data);
     }
 
     /**
@@ -207,6 +220,43 @@ class Event {
      */
     get target() {
         return this[$target];
+    }
+
+    /**
+     * 从对象池中取出或创建一个新的事件实例
+     * @param EventClass
+     * @param type
+     * @param data
+     * @returns {Event}
+     */
+    static create(EventClass, type, data = null) {
+        for (let i = 0; i < eventPool.length; i++) {
+            if (eventPool[i] instanceof EventClass) {
+                const evt = eventPool[i]
+                evt[$type] = type;
+                evt.data = data;
+                evt[$target] = null;
+                eventPool.splice(i, 1);
+                return evt;
+            }
+        }
+
+        return new EventClass(type, data);
+    }
+
+    /**
+     * 释放一个事件对象，并缓存到对象池
+     * @param {Event} event
+     */
+    static release(event) {
+        // 限制对象池大小
+        if(eventPool.length >= 50){
+            return;
+        }
+        event.data = null;
+        event[$target] = null;
+        event[$type] = null;
+        eventPool.push(event);
     }
 }
 
