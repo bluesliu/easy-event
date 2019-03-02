@@ -1,13 +1,35 @@
 {
   "name": "easy-event",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "easy-event 是一个简单易用的事件模块。提供了3个类：Event、EventDispatcher 和 EventCenter。",
-  "main": "easy-event.js",
-  "keywords": ["event","dispatcher","js","center"],
+  "main": "lib/index.js",
+  "jsnext:main": "src/index.js",
+  "keywords": [
+    "event",
+    "dispatcher",
+    "js",
+    "center"
+  ],
   "author": "blues",
   "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/bluesliu/easy-event.git"
-  }
+  },
+  "scripts": {
+    "start": "webpack-dev-server",
+    "build": "webpack --config webpack.build.js",
+    "pub": "npm publish"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/plugin-proposal-class-properties": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "babel-loader": "^8.0.5",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.2.1"
+  },
+  "dependencies": {}
 }

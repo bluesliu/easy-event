@@ -1,5 +1,4 @@
-const {Event, EventDispatcher, EventCenter} = require('./easy-event');
-
+import {EventDispatcher,Event,EventCenter} from '../src'
 
 class Main {
     constructor() {

@@ -342,4 +342,6 @@ class EventCenter extends EventDispatcher {
 
 
 
-module.exports = {Event, EventDispatcher, EventCenter};
+export {
+    Event, EventDispatcher, EventCenter
+}

@@ -157,7 +157,7 @@ loader has Event.COMPLETE：false
 | EventDispatcher ( target ? :`object` ) : `EventDispatcher` <br> 创建一个 `EventDispatcher` 类的实例 |
 | addEventListener ( type :`string`, listener :`function`, thisObj ? :`object`, priority ? :`number` ) : `void` <br> 使用 `EventDispatcher` 对象注册事件侦听器对象，以使侦听器能够接收事件通知 |
 | dispatchEvent ( event : `Event` ) : `void` <br> 派发事件 |
-| dispatchEventWith ( type :`string` , data ? : 'object' ) : `void` <br> 派发一个指定参数的事件 |
+| dispatchEventWith ( type :`string` , data ? : `object` ) : `void` <br> 派发一个指定参数的事件 |
 | hasEventListener ( type :`string` ) : `boolean` <br> 检查 `EventDispatcher` 对象是否为特定事件类型注册了任何侦听器 |
 | once ( type :`string`, listener :`function`, thisObj ? :`object`, priority ? :`number` ) : `void` <br> 添加仅回调一次的事件侦听器，此方法与addEventListener()方法不同，addEventListener()方法会持续产生回调，而此方法在第一次回调时就会自动移除监听 |
 | removeEventListener ( type :`string`, listener :`function`) : `void` <br> 从 `EventDispatcher` 对象中删除侦听器 |
@@ -181,5 +181,6 @@ loader has Event.COMPLETE：false
 
 | 版本 | 更新内容 |
 | --- | ------- |
+| 1.2.0 | 使用 `webpack` 打包。|
 | 1.1.0 | 新增 `Event.create()`、`Event.release()`、`EventDispatcher.dispatchEventWith()` 方法。|
 
